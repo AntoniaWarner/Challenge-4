@@ -21,6 +21,12 @@ import java.util.Map;
 public class MyRoutingProtocol implements IRoutingProtocol {
     private LinkLayer linkLayer;
 
+    public MyRoutingProtocol() {
+        for (int i = 0; i < 6; i++) {
+            myRoutingTable.put(i,null);
+        }
+    }
+
     // You can use this data structure to store your routing table.
     private HashMap<Integer, MyRoute> myRoutingTable = new HashMap<>();
 
@@ -47,6 +53,25 @@ public class MyRoutingProtocol implements IRoutingProtocol {
             System.out.printf("received packet from %d with %d rows and %d columns of data%n", neighbour, dt.getNRows(), dt.getNColumns());
 
             // you'll probably want to process the data, update your data structures (myRoutingTable) , etc....
+            for (int j = 0; j < 6; j++) {
+                if (dt.getRow(j)[2] == null) {
+                    continue;
+                }
+                if (myRoutingTable.get(j) != null) {
+                    if ((dt.getRow(j)[2] + linkcost) < myRoutingTable.get(j).cost) {
+                        MyRoute route = new MyRoute();
+                        route.nextHop = j;
+                        route.cost = dt.getRow(j)[2] + linkcost;
+                        myRoutingTable.replace(j,route);
+                    }
+                } else {
+                    MyRoute route = new MyRoute();
+                    route.nextHop = j;
+                    route.cost = linkcost + dt.getRow(j)[2];
+                    myRoutingTable.replace(j,route);
+                }
+            }
+
 
             // reading one cell from the DataTable can be done using the  dt.get(row,column)  method
 
@@ -71,6 +96,15 @@ public class MyRoutingProtocol implements IRoutingProtocol {
         // you'll probably want to put some useful information into dt here
         // by using the  dt.set(row, column, value)  method.
 
+        for (int k = 0; k < myRoutingTable.size() ; k++){
+            for (int l = 0; l < myRoutingTable.size() ; l++) {
+                if (k == l){
+                    dt.set(k,l,0);
+                } else {
+                    MyRoute route = 
+                }
+            }
+        }
         // next, actually send out the packet, with our own address as the source address
         // and 0 as the destination address: that's a broadcast to be received by all neighbours.
         Packet pkt = new Packet(myAddress, 0, dt);
