@@ -22,8 +22,11 @@ public class MyRoutingProtocol implements IRoutingProtocol {
     private LinkLayer linkLayer;
 
     public MyRoutingProtocol() {
-        for (int i = 0; i < 6; i++) {
-            myRoutingTable.put(i,null);
+        for (int i = 1; i < 7; i++) {
+            MyRoute temproute = new MyRoute();
+            temproute.nextHop = 1;
+            temproute.cost = -1;
+            myRoutingTable.put(i,temproute);
         }
     }
 
@@ -53,22 +56,23 @@ public class MyRoutingProtocol implements IRoutingProtocol {
             System.out.printf("received packet from %d with %d rows and %d columns of data%n", neighbour, dt.getNRows(), dt.getNColumns());
 
             // you'll probably want to process the data, update your data structures (myRoutingTable) , etc....
-            for (int j = 0; j < 6; j++) {
-                if (dt.getRow(j)[2] == null) {
-                    continue;
-                }
-                if (myRoutingTable.get(j) != null) {
-                    if ((dt.getRow(j)[2] + linkcost) < myRoutingTable.get(j).cost) {
+            for (int j = 1; j < 7; j++) {
+                for (int b = 0; b < 6; b++) {
+                    if (myRoutingTable.get(j).cost != -1) {
+                        if ((dt.getRow(j)[b] + linkcost) < myRoutingTable.get(j).cost) {
+                            System.out.println(myRoutingTable.get(j).cost);
+                            MyRoute route = new MyRoute();
+                            route.nextHop = neighbour;
+                            route.cost = dt.getRow(j)[b] + linkcost;
+                            myRoutingTable.replace(j, route);
+                        }
+                    } else {
                         MyRoute route = new MyRoute();
-                        route.nextHop = j;
-                        route.cost = dt.getRow(j)[2] + linkcost;
-                        myRoutingTable.replace(j,route);
+                        route.nextHop = neighbour;
+                        route.cost = linkcost + dt.getRow(j)[b];
+                        myRoutingTable.replace(j, route);
+
                     }
-                } else {
-                    MyRoute route = new MyRoute();
-                    route.nextHop = j;
-                    route.cost = linkcost + dt.getRow(j)[2];
-                    myRoutingTable.replace(j,route);
                 }
             }
 
@@ -92,22 +96,17 @@ public class MyRoutingProtocol implements IRoutingProtocol {
 
         // and send out one (or more, if you want) distance vector packets
         // the actual distance vector data must be stored in the DataTable structure
-        DataTable dt = new DataTable(6);   // the 6 is the number of columns, you can change this
+        DataTable dtNew = new DataTable(6);   // the 6 is the number of columns, you can change this
         // you'll probably want to put some useful information into dt here
         // by using the  dt.set(row, column, value)  method.
 
-        for (int k = 0; k < myRoutingTable.size() ; k++){
-            for (int l = 0; l < myRoutingTable.size() ; l++) {
-                if (k == l){
-                    dt.set(k,l,0);
-                } else {
-                    MyRoute route = 
-                }
-            }
+        for (int k = 1; k < 7; k++) {
+            dtNew.set(k, myAddress-1, myRoutingTable.get(k).cost);
         }
+
         // next, actually send out the packet, with our own address as the source address
         // and 0 as the destination address: that's a broadcast to be received by all neighbours.
-        Packet pkt = new Packet(myAddress, 0, dt);
+        Packet pkt = new Packet(myAddress, 0, dtNew);
         this.linkLayer.transmit(pkt);
 
         /*
@@ -124,6 +123,7 @@ public class MyRoutingProtocol implements IRoutingProtocol {
 
         // <Destination, NextHop>
         HashMap<Integer, Integer> ft = new HashMap<>();
+
 
         for (Map.Entry<Integer, MyRoute> entry : myRoutingTable.entrySet()) {
             ft.put(entry.getKey(), entry.getValue().nextHop);
