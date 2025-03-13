@@ -21,14 +21,6 @@ import java.util.Map;
 public class MyRoutingProtocol implements IRoutingProtocol {
     private LinkLayer linkLayer;
 
-    public MyRoutingProtocol() {
-        for (int i = 1; i < 7; i++) {
-            MyRoute temproute = new MyRoute();
-            temproute.nextHop = 1;
-            temproute.cost = -1;
-            myRoutingTable.put(i,temproute);
-        }
-    }
 
     // You can use this data structure to store your routing table.
     private HashMap<Integer, MyRoute> myRoutingTable = new HashMap<>();
@@ -41,6 +33,13 @@ public class MyRoutingProtocol implements IRoutingProtocol {
 
     @Override
     public void tick(PacketWithLinkCost[] packetsWithLinkCosts) {
+
+for (int i = 1; i < 7; i++){
+            MyRoute tempRoute = new MyRoute();
+            tempRoute.cost = -1;
+            tempRoute.nextHop = 1;
+            myRoutingTable.put(i,tempRoute);
+        }
         // Get the address of this node
         int myAddress = this.linkLayer.getOwnAddress();
 
@@ -56,25 +55,32 @@ public class MyRoutingProtocol implements IRoutingProtocol {
             System.out.printf("received packet from %d with %d rows and %d columns of data%n", neighbour, dt.getNRows(), dt.getNColumns());
 
             // you'll probably want to process the data, update your data structures (myRoutingTable) , etc....
-            for (int j = 1; j < 7; j++) {
-                for (int b = 0; b < 6; b++) {
-                    if (myRoutingTable.get(j).cost != -1) {
-                        if ((dt.getRow(j)[b] + linkcost) < myRoutingTable.get(j).cost) {
-                            System.out.println(myRoutingTable.get(j).cost);
-                            MyRoute route = new MyRoute();
-                            route.nextHop = neighbour;
-                            route.cost = dt.getRow(j)[b] + linkcost;
-                            myRoutingTable.replace(j, route);
-                        }
-                    } else {
+            int j = neighbour;
+            for (int b = 0; b < 6; b++) {
+                if (myRoutingTable.get(j).cost != -1) {
+                    if ((dt.getRow(j-1)[b] + linkcost) < myRoutingTable.get(j).cost) {
+                        System.out.println(myRoutingTable.get(j).cost);
                         MyRoute route = new MyRoute();
-                        route.nextHop = neighbour;
-                        route.cost = linkcost + dt.getRow(j)[b];
+                        if (j != myAddress){
+                            route.nextHop = neighbour;
+                        } else {
+                            route.nextHop = myAddress;
+                        }
+                        route.cost = dt.getRow(j-1)[b] + linkcost;
                         myRoutingTable.replace(j, route);
-
                     }
+                } else {
+                    MyRoute route = new MyRoute();
+                    if (j != myAddress ) {
+                        route.nextHop = neighbour;
+                    } else {
+                        route.nextHop = myAddress;
+                    }
+                    route.cost = linkcost + dt.getRow(j-1)[b];
+                    myRoutingTable.replace(j, route);
                 }
             }
+
 
 
             // reading one cell from the DataTable can be done using the  dt.get(row,column)  method
@@ -101,7 +107,7 @@ public class MyRoutingProtocol implements IRoutingProtocol {
         // by using the  dt.set(row, column, value)  method.
 
         for (int k = 1; k < 7; k++) {
-            dtNew.set(k, myAddress-1, myRoutingTable.get(k).cost);
+            dtNew.set(k-1, myAddress-1, myRoutingTable.get(k).cost);
         }
 
         // next, actually send out the packet, with our own address as the source address
