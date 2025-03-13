@@ -18,7 +18,7 @@ import java.util.Map;
  * in public places, to preserve the learning effect for future students. *
  **************************************************************************
  */
-public class MyRoutingProtocol implements IRoutingProtocol {
+public class MyRoutingProtocol2 implements IRoutingProtocol {
     private LinkLayer linkLayer;
 
 
@@ -30,7 +30,7 @@ public class MyRoutingProtocol implements IRoutingProtocol {
         this.linkLayer = linkLayer;
     }
 
-    public MyRoutingProtocol() {
+    public MyRoutingProtocol2() {
         for (int i = 1; i < 7; i++){
             MyRoute tempRoute = new MyRoute();
             tempRoute.cost = -1;

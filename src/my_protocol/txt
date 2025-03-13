@@ -1,0 +1,51 @@
+for (i = 0; i < packetsWithLinkCosts.length; i++) {
+            Packet packet = packetsWithLinkCosts[i].getPacket();
+            int neighbour = packet.getSourceAddress();             // from whom is the packet?
+            int linkcost = packetsWithLinkCosts[i].getLinkCost();  // what's the link cost from/to this neighbour?
+            DataTable dt = packet.getDataTable();                  // other data contained in the packet
+            System.out.printf("received packet from %d with %d rows and %d columns of data%n", neighbour, dt.getNRows(), dt.getNColumns());
+
+            // you'll probably want to process the data, update your data structures (myRoutingTable) , etc....
+            int j = neighbour;
+            for (int b = 1; b < 7; b++) {
+                if ((dt.get(j-1,b-1) + linkcost) < myRoutingTable.get(b).cost || myRoutingTable.get(b).cost == -1) {
+                    System.out.println(myAddress + "-" + myRoutingTable.get(j).cost+linkcost + "-" + b);
+                    MyRoute route = new MyRoute();
+                    if (j != myAddress){
+                        route.nextHop = neighbour;
+                        route.cost = dt.get(j-1,b-1) + linkcost;
+                    } else {
+                        route.nextHop = myAddress;
+                        route.cost = 0;
+                    }
+                    myRoutingTable.replace(b, route);
+                }
+            }
+
+
+
+              for (i = 0; i < packetsWithLinkCosts.length; i++) {
+                        Packet packet = packetsWithLinkCosts[i].getPacket();
+                        int neighbour = packet.getSourceAddress();             // from whom is the packet?
+                        int linkcost = packetsWithLinkCosts[i].getLinkCost();  // what's the link cost from/to this neighbour?
+                        DataTable dt = packet.getDataTable();                  // other data contained in the packet
+                        System.out.printf("received packet from %d with %d rows and %d columns of data%n", neighbour, dt.getNRows(), dt.getNColumns());
+
+                        // you'll probably want to process the data, update your data structures (myRoutingTable) , etc....
+
+                        for (int dest = 1; dest < 7 ; dest++){
+                            MyRoute route = new MyRoute();
+                            if (!myRoutingTable.containsKey(dest)) {;
+                                route.nextHop = neighbour;
+                                route.cost = dt.get(neighbour -1, dest -1) + linkcost;
+                            }
+                            else if (dt.get(neighbour-1 , dest - 1) + linkcost < myRoutingTable.get(dest).cost || myRoutingTable.get(dest).cost == -1){
+                                if (dest != myAddress){
+                                  route.nextHop = neighbour;
+                                  route.cost = dt.get(neighbour-1 , dest - 1) + linkcost;
+                                } else{
+                                    route.nextHop = myAddress;
+                                    route.cost = 0;
+                                }
+                            }
+                        }
